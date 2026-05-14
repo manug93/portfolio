@@ -268,7 +268,6 @@ function changeLanguage(lang: "en" | "fr") {
   display: flex;
   gap: 1rem;
   align-items: center;
-  background: rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
 

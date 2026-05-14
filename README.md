@@ -1,73 +1,97 @@
-# portfolio
+# Portfolio Website
 
-This template should help get you started developing with Vue 3 in Vite.
+A modern, animated portfolio website built with Vue 3, Vite, and TypeScript. This project presents a personal portfolio experience with bilingual support, animated content sections, and a contact form powered by EmailJS.
 
-## Recommended IDE Setup
+## Website Content
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+The portfolio website includes the following sections:
 
-## Recommended Browser Setup
+- **About Me**: Introduction highlighting full-stack development experience, API design, cloud deployment, and data pipeline integrations.
+- **Projects**: Featured portfolio items:
+  - **Personal Portfolio**: Interactive Vue 3 + TypeScript portfolio website.
+  - **Medical App**: Appointment booking application with PHP API and MySQL backend.
+  - **Citadelle Group Web App**: Service showcase website for Citadelle Group SA.
+  - **Secure REST API**: Microservices architecture with JWT authentication, rate limiting, and Swagger documentation.
+- **Achievements**: Professional milestones such as Azure AI Fundamentals and IBM Data Analyst Professional certifications.
+- **Skills**: A rotating view of skills across languages, web/API, databases, data & ETL, cloud & DevOps, tools, methodologies, and operating systems.
+- **Contact**: A contact form integrated using EmailJS.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## Key Features
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
+- Vue 3 and TypeScript frontend
+- Vite-powered development and build
+- Multilingual support with `vue-i18n`
+- Animated carousel-style sections for projects, achievements, and skills
+- Responsive, asymmetrical glassmorphism-inspired design
+- EmailJS contact form integration
 
 ## Project Setup
+
+Install dependencies:
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+Run the development server:
 
 ```sh
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+Build for production:
 
 ```sh
 npm run build
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+Preview the production build:
+
+```sh
+npm run preview
+```
+
+## Testing
+
+Run unit tests:
 
 ```sh
 npm run test:unit
 ```
 
-### Run End-to-End Tests with [Playwright](https://playwright.dev)
+Run end-to-end tests:
 
 ```sh
-# Install browsers for the first run
-npx playwright install
-
-# When testing on CI, must build the project first
-npm run build
-
-# Runs the end-to-end tests
 npm run test:e2e
-# Runs the tests only on Chromium
-npm run test:e2e -- --project=chromium
-# Runs the tests of a specific file
-npm run test:e2e -- tests/example.spec.ts
-# Runs the tests in debug mode
-npm run test:e2e -- --debug
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+If this is your first Playwright run, install browsers first:
+
+```sh
+npx playwright install
+```
+
+## Code Quality
+
+Type-check the project:
+
+```sh
+npm run type-check
+```
+
+Lint and fix issues:
 
 ```sh
 npm run lint
 ```
+
+Format source files:
+
+```sh
+npm run format
+```
+
+## Notes
+
+- The contact form is configured in `src/components/Contact.vue` using EmailJS.
+- Project and skill content are defined in source translations and component data.

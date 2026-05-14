@@ -193,7 +193,7 @@ const current = ref(0);
 
 let timer: ReturnType<typeof setInterval> | null = null;
 
-const INTERVAL = 4500;
+const INTERVAL = 10000;
 
 /* ── Navigation ── */
 function next() {

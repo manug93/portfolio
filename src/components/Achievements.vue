@@ -99,7 +99,7 @@ const achievements: Achievement[] = [
 
 const current = ref(0);
 let timer: ReturnType<typeof setInterval> | null = null;
-const INTERVAL = 5000;
+const INTERVAL = 10000;
 
 function next() {
   current.value = (current.value + 1) % achievements.length;

@@ -1,25 +1,28 @@
 // src/plugins/analytics.ts
-// Remplace G-XXXXXXXXXX par ton Measurement ID dans Google Analytics
 
-export function loadGA(measurementId: string) {
-  // Injection du script GA4
-  const script1 = document.createElement('script')
-  script1.async = true
-  script1.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`
-  document.head.appendChild(script1)
+// Déclaration des types globaux pour GA4
+declare global {
+  interface Window {
+    dataLayer: unknown[]
+    gtag: (...args: unknown[]) => void
+  }
+}
 
-  // Initialisation
+export function loadGA(measurementId: string): void {
+  const script = document.createElement('script')
+  script.async = true
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`
+  document.head.appendChild(script)
+
   window.dataLayer = window.dataLayer || []
-  function gtag(...args: any[]) {
+
+  window.gtag = function (...args: unknown[]) {
     window.dataLayer.push(args)
   }
-  window.gtag = gtag
 
-  gtag('js', new Date())
-  gtag('config', measurementId, {
-    // Anonymise les IPs (bonne pratique RGPD)
+  window.gtag('js', new Date())
+  window.gtag('config', measurementId, {
     anonymize_ip: true,
-    // Envoie automatiquement les page_view
     send_page_view: true,
   })
 }
@@ -28,7 +31,7 @@ export function loadGA(measurementId: string) {
 export function trackEvent(
   eventName: string,
   params?: Record<string, string | number>
-) {
+): void {
   if (typeof window.gtag === 'function') {
     window.gtag('event', eventName, params)
   }

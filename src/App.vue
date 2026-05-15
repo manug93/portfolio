@@ -6,6 +6,7 @@ import HeroComponent from './components/HeroComponent.vue'
 <template>
 
     <div class="main">
+      <SeoHead />
       <HeroComponent />
     </div>
 </template>

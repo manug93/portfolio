@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import SeoHead from './components/SeoHead.vue';
 import HeroComponent from './components/HeroComponent.vue'
 </script>
 

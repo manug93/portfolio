@@ -6,13 +6,14 @@ import i18n from './i18n'
 
 import App from './App.vue'
 import router from './router'
-import { createHead } from '@unhead/vue/client'
-import { loadGA } from './plugins/analytics'
-const app = createApp(App)
-const head = createHead()
+import { configure } from "vue-gtag";
 
-app.use(head)
-loadGA('G-PGZJWR0P8L')
+
+const app = createApp(App)
+
+configure({
+  tagId: "G-PGZJWR0P8L"
+})
 app.use(createPinia())
 app.use(router)
 app.use(i18n)

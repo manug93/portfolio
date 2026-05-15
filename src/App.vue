@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import {  RouterView } from 'vue-router'
-import SeoHead from './components/SeoHead.vue';
 </script>
 
 <template>
 
     <div class="main">
-      <SeoHead />
       <RouterView />
     </div>
 </template>

@@ -10,7 +10,7 @@ const props = withDefaults(defineProps<{
   title: 'Bienvenue sur Mon Portfolio — Développeur Full Stack spécialisé en Data, Cloud et Web',
   description: 'Portfolio de Mama Nke Hugues Armel — Développeur Full Stack spécialisé en Data, Cloud et Web.',
   url: 'https://manug.dev',
-  image: 'https://manug.dev/logo.png',
+  image: 'https://manug.dev/preview.png',
 })
 
 useHead({

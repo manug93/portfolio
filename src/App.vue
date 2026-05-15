@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import {  RouterView } from 'vue-router'
 import SeoHead from './components/SeoHead.vue';
-import HeroComponent from './components/HeroComponent.vue'
 </script>
 
 <template>
 
     <div class="main">
       <SeoHead />
-      <HeroComponent />
+      <RouterView />
     </div>
 </template>
 

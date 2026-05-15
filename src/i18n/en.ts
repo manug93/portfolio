@@ -52,6 +52,14 @@ export default {
       messagePlaceholder: "Message...",
       submitButton: "Send",
     },
-  }
+  },
+  not_found: {
+    title: 'Page Not Found',
+    errorName: 'Request Error: 404',
+    message: 'The page you are looking for does not exist.',
+    tag1: 'Page Missing',
+    tag2: 'Invalid Route',
+    homeButton: 'Go to Home',
+  },
 }
 

@@ -65,4 +65,12 @@ export default {
       submitButton: "Envoyer",
     },
   },
+  not_found: {
+    title: 'Page non trouvée',
+    errorName: 'Erreur de requete: 404',
+    message: 'La page que vous cherchez n\'existe pas ou a été déplacée.',
+    tag1: 'Page manquante',
+    tag2: 'Route invalide',
+    homeButton: 'Aller à l\'accueil',
+  },
 };

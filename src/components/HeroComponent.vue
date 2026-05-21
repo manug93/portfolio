@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, watch } from "vue";
+import { computed, defineAsyncComponent, ref, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 
@@ -7,17 +7,15 @@ const { t, locale } = useI18n();
 const route  = useRoute();
 const router = useRouter();
 
-// Sections valides
+// ── Sections ───────────────────────────────────────────────────────────────
 const VALID_SECTIONS = ["about", "projects", "achievements", "skills", "contact"] as const;
 type SectionId = typeof VALID_SECTIONS[number];
 
-// activeId dérivé de la route — source de vérité unique
 const activeId = computed<SectionId>(() => {
   const name = route.name as string;
   return (VALID_SECTIONS.includes(name as SectionId) ? name : "about") as SectionId;
 });
 
-// Chargement dynamique des composants
 const components: Record<SectionId, ReturnType<typeof defineAsyncComponent>> = {
   about:        defineAsyncComponent(() => import("./AboutMe.vue")),
   projects:     defineAsyncComponent(() => import("./Projects.vue")),
@@ -26,7 +24,6 @@ const components: Record<SectionId, ReturnType<typeof defineAsyncComponent>> = {
   contact:      defineAsyncComponent(() => import("./Contact.vue")),
 };
 
-// Menu items
 const menuItems = computed(() => [
   { id: "about",        label: t("menu.about"),        clipPath: "polygon(5% 10%, 60% 0%, 92% 25%, 95% 80%, 40% 100%, 0% 60%)" },
   { id: "projects",     label: t("menu.projects"),     clipPath: "polygon(0% 0%, 50% 20%, 90% 0%, 95% 100%, 30% 88%, 0% 100%, 0% 30%)" },
@@ -35,12 +32,34 @@ const menuItems = computed(() => [
   { id: "contact",      label: t("menu.contact"),      clipPath: "polygon(15% 0%, 85% 5%, 100% 35%, 95% 75%, 50% 100%, 5% 80%)" },
 ]);
 
-// Clic sur un item → navigation (l'URL change → activeId se met à jour automatiquement)
-function select(id: string) {
-  router.push({ name: id });
+// ── Menu mobile ────────────────────────────────────────────────────────────
+const menuOpen = ref(false);
+
+function toggleMenu() {
+  menuOpen.value = !menuOpen.value;
 }
 
-// Language switch
+function select(id: string) {
+  router.push({ name: id });
+  menuOpen.value = false;
+}
+
+// ── Masquer logo/liens quand le clavier virtuel est visible ────────────────
+const keyboardVisible = ref(false);
+
+function handleViewportResize() {
+  if (!window.visualViewport) return;
+  keyboardVisible.value = window.visualViewport.height < window.innerHeight * 0.75;
+}
+
+onMounted(() => {
+  window.visualViewport?.addEventListener("resize", handleViewportResize);
+});
+onUnmounted(() => {
+  window.visualViewport?.removeEventListener("resize", handleViewportResize);
+});
+
+// ── Langue ─────────────────────────────────────────────────────────────────
 function changeLanguage(lang: "en" | "fr") {
   locale.value = lang;
   localStorage.setItem("lang", lang);
@@ -49,13 +68,51 @@ function changeLanguage(lang: "en" | "fr") {
 
 <template>
   <div class="main">
-    <div class="lang-selector">
+
+    <!-- ── Lang selector desktop (position fixe, toujours visible sur desktop) ── -->
+    <div class="lang-selector desktop-lang">
       <button class="lang-btn" @click="changeLanguage('en')">EN</button>
       <button class="lang-btn" @click="changeLanguage('fr')">FR</button>
     </div>
 
+    <!-- ── Topbar mobile (hamburger + lang) ── -->
+    <header class="topbar">
+      <button
+        class="hamburger"
+        :class="{ open: menuOpen }"
+        @click="toggleMenu"
+        aria-label="Toggle menu"
+      >
+        <span /><span /><span />
+      </button>
+      <div class="lang-selector">
+        <button class="lang-btn" @click="changeLanguage('en')">EN</button>
+        <button class="lang-btn" @click="changeLanguage('fr')">FR</button>
+      </div>
+    </header>
+
+    <!-- ── Overlay menu mobile ── -->
+    <Transition name="slide-menu">
+      <nav v-if="menuOpen" class="mobile-nav-overlay" @click.self="menuOpen = false">
+        <div class="mobile-nav-panel">
+          <div
+            v-for="item in menuItems"
+            :key="item.id"
+            class="mobile-nav-item"
+            :class="{ active: activeId === item.id }"
+            @click="select(item.id)"
+          >
+            {{ item.label }}
+          </div>
+        </div>
+      </nav>
+    </Transition>
+
+    <!-- ── Héro ── -->
     <div class="hero">
       <div class="menu-container">
+
+        <!-- Menu latéral (desktop uniquement) -->
         <nav class="main-menu">
           <div
             v-for="item in menuItems"
@@ -69,20 +126,21 @@ function changeLanguage(lang: "en" | "fr") {
           </div>
         </nav>
 
+        <!-- Contenu -->
         <div class="menu-content">
           <Transition name="fade" mode="out-in">
-            <component
-              :is="components[activeId]"
-              :key="activeId"
-            />
+            <component :is="components[activeId]" :key="activeId" />
           </Transition>
         </div>
+
       </div>
     </div>
 
-    <div class="logo" />
+    <!-- ── Logo : masqué quand clavier virtuel ouvert ── -->
+    <div v-show="!keyboardVisible" class="logo" />
 
-    <div class="external-links">
+    <!-- ── Liens externes : masqués quand clavier virtuel ouvert ── -->
+    <div class="external-links" :class="{ 'keyboard-open': keyboardVisible }">
       <a href="https://github.com/manug93" target="_blank" rel="noopener noreferrer">
         <svg fill="#fff" width="24px" height="24px" viewBox="0 -0.5 25 25" xmlns="http://www.w3.org/2000/svg">
           <g id="SVGRepo_bgCarrier" stroke-width="0"/>
@@ -100,10 +158,12 @@ function changeLanguage(lang: "en" | "fr") {
         </svg>
       </a>
     </div>
+
   </div>
 </template>
 
 <style scoped>
+/* ── Base ──────────────────────────────────────────────────────────────────── */
 .main {
   display: flex;
   flex-direction: column;
@@ -115,6 +175,109 @@ function changeLanguage(lang: "en" | "fr") {
   margin: 0;
   font-family: 'Pricedown', cursive;
 }
+
+/* ── Lang selector desktop ─────────────────────────────────────────────────── */
+.desktop-lang {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 300;
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ── Topbar mobile (cachée sur desktop) ────────────────────────────────────── */
+.topbar {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Hamburger ─────────────────────────────────────────────────────────────── */
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 28px;
+  height: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.hamburger span {
+  display: block;
+  height: 2px;
+  background: #ff6b6b;
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform-origin: center;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(9px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger.open span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+
+/* ── Overlay menu mobile ───────────────────────────────────────────────────── */
+.mobile-nav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.mobile-nav-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 75%;
+  max-width: 300px;
+  height: 100%;
+  background: rgba(10, 10, 30, 0.97);
+  border-right: 1px solid rgba(255, 107, 107, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 1.5rem;
+}
+.mobile-nav-item {
+  font-family: 'Pricedown', cursive;
+  font-size: 1.6rem;
+  color: #ff6b6b;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  border-left: 3px solid transparent;
+}
+.mobile-nav-item:hover,
+.mobile-nav-item.active {
+  color: #fff;
+  background: rgba(255, 107, 107, 0.15);
+  border-left-color: #ff6b6b;
+}
+
+/* Transition slide du panel */
+.slide-menu-enter-active { transition: opacity 0.3s ease; }
+.slide-menu-leave-active { transition: opacity 0.3s ease; }
+.slide-menu-enter-from,
+.slide-menu-leave-to { opacity: 0; }
+.slide-menu-enter-active .mobile-nav-panel,
+.slide-menu-leave-active .mobile-nav-panel { transition: transform 0.3s ease; }
+.slide-menu-enter-from .mobile-nav-panel { transform: translateX(-100%); }
+.slide-menu-leave-to .mobile-nav-panel { transform: translateX(-100%); }
+
+/* ── Héro ──────────────────────────────────────────────────────────────────── */
 .hero {
   display: flex;
   height: 100vh;
@@ -133,56 +296,8 @@ function changeLanguage(lang: "en" | "fr") {
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
 }
-.logo {
-  display: block;
-  margin: 0 auto;
-  width: 150px;
-  height: 150px;
-  position: absolute;
-  background-image: url('@/assets/logo.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  bottom: 20px;
-  left: 20px;
-  z-index: 100;
-}
-.external-links {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  gap: 1rem;
-}
-.lang-selector {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  display: flex;
-  gap: 0.5rem;
-}
-.lang-btn {
-  border: none;
-  background: rgba(0,0,0,0.5);
-  color: white;
-  padding: 0.4rem 0.8rem;
-  cursor: pointer;
-  transition: 0.3s ease;
-  font-family: 'Pricedown', cursive;
-}
-.lang-btn:hover {
-  background: rgba(255,255,255,0.2);
-}
-.external-links a {
-  color: #ff6b6b;
-  transition: color 0.3s ease;
-}
-.external-links a:hover {
-  color: #fff;
-  background-color: transparent;
-}
 
-/* ---------- Menu ---------- */
+/* ── Menu latéral desktop ──────────────────────────────────────────────────── */
 .main-menu {
   position: relative;
   width: 50%;
@@ -212,7 +327,7 @@ function changeLanguage(lang: "en" | "fr") {
   background-color: rgba(255, 107, 107, 0.25);
 }
 
-/* ---------- Contenu ---------- */
+/* ── Contenu ───────────────────────────────────────────────────────────────── */
 .menu-content {
   position: relative;
   width: 50%;
@@ -222,57 +337,122 @@ function changeLanguage(lang: "en" | "fr") {
   overflow: hidden;
 }
 
-/* ---------- Transition ---------- */
+/* ── Transitions ───────────────────────────────────────────────────────────── */
 .fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-.fade-enter-from {
-  opacity: 0;
-  transform: translateX(16px);
-}
-.fade-leave-to {
-  opacity: 0;
-  transform: translateX(-16px);
+.fade-leave-active { transition: opacity 0.25s ease, transform 0.25s ease; }
+.fade-enter-from { opacity: 0; transform: translateX(16px); }
+.fade-leave-to { opacity: 0; transform: translateX(-16px); }
+
+/* ── Logo ──────────────────────────────────────────────────────────────────── */
+.logo {
+  display: block;
+  margin: 0 auto;
+  width: 150px;
+  height: 150px;
+  position: absolute;
+  background-image: url('@/assets/logo.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  bottom: 20px;
+  left: 20px;
+  z-index: 100;
 }
 
-/* ---------- Responsive ---------- */
+/* ── Liens externes ────────────────────────────────────────────────────────── */
+.external-links {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 1rem;
+  transition: opacity 0.3s ease;
+}
+.external-links.keyboard-open {
+  opacity: 0;
+  pointer-events: none;
+}
+.external-links a {
+  color: #ff6b6b;
+  transition: color 0.3s ease;
+}
+.external-links a:hover {
+  color: #fff;
+  background-color: transparent;
+}
+
+/* ── Lang button ───────────────────────────────────────────────────────────── */
+.lang-selector {
+  display: flex;
+  gap: 0.5rem;
+}
+.lang-btn {
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  font-family: 'Pricedown', cursive;
+  border-radius: 4px;
+}
+.lang-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Mobile ≤ 768px ────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  /* Afficher la topbar mobile */
+  .topbar {
+    display: flex;
+  }
+
+  /* Cacher le lang selector desktop */
+  .desktop-lang {
+    display: none;
+  }
+
+  /* Cacher le menu latéral desktop */
+  .main-menu {
+    display: none;
+  }
+
+  /* Hero sans clip-path sur mobile, plein écran */
   .hero {
-    flex-direction: column;
     clip-path: none;
     background-size: cover;
     background-position: 10% 50%;
   }
+
+  /* Contenu plein écran avec espace pour la topbar */
   .menu-container {
     flex-direction: column;
   }
-  .main-menu {
-    width: 100%;
-    height: auto;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 1rem 0;
-  }
-  .menu-item {
-    clip-path: none !important;
-    gap: 0;
-  }
   .menu-content {
     width: 100%;
-    height: auto;
+    height: 100%;
     padding: 1rem;
+    padding-top: calc(56px + 1rem); /* topbar height + padding */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
   }
+
+  /* Logo réduit sur mobile */
   .logo {
+    width: 60px;
+    height: 60px;
+    bottom: 10px;
+    left: 10px;
+    opacity: 0.7;
     position: fixed;
   }
-  .lang-selector {
-    position: absolute;
+
+  /* Liens externes en fixed sur mobile */
+  .external-links {
+    position: fixed;
     bottom: 10px;
-    left: 40%;
-    height: 30px;
-    top: unset;
+    right: 10px;
   }
 }
 </style>
